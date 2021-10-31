@@ -51,11 +51,11 @@ class FullNN(NeuralNetwork):
 
 
     def _test_train(self, iterations: int):
-        mndata = MNIST('MNIST')
-        mndata.gz = True
-        images, labels = mndata.load_training()
+        images, labels = load_mnist_train()
 
         for it in range(iterations):
+            shift = 100
+            it += shift
             inp = shrink_img_array(images[it])
             right_ans = labels[it]
             res = self.get_result(inp)

@@ -1,6 +1,12 @@
 import numpy as np
 import pygame
+from mnist import MNIST
 
+
+def load_mnist_train():
+    mndata = MNIST('MNIST')
+    mndata.gz = True
+    return mndata.load_training()
 
 def pixel_reader(image_: pygame.Surface, H, W, scale):
     grid_ = [[image_.get_at([y * scale, x * scale])[0] / 255 for x in range(W // scale)] for y in range(H // scale)]

@@ -1,6 +1,7 @@
 import numpy as np
 import random
 import math
+from Funcs import *
 
 
 class NeuralNetwork:
@@ -174,8 +175,25 @@ class NeuralNetwork:
                 self.weights[lay_num][i][j] -= scaled_delta * alpha
         return back_errors
 
-    def run_back_prop_train(self, iteerations: int, alpha=1):
-        pass
+    def run_training(self, iterations: int, alpha=1):
+        images, labels = load_mnist_train()
+
+        for it in range(iterations):
+            shift = 100
+            it += shift
+            inp = shrink_img_array(images[it])
+            right_ans = labels[it]
+            res = self.get_result(inp)
+            errors = self.get_errors(right_ans)
+            right_res = [i == right_ans for i in range(len(self.layers[-1]))]
+            if self.print_train: print(it, end='. ')
+
+            self.back_prop(1, errors, 1)
+
+            if self.print_train:
+                error = self.get_sqr_error(right_ans)
+                print(f'Prediction: {res}, right ans: {right_ans}, error: {error}')
+
 
 
 
