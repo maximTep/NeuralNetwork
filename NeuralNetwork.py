@@ -6,27 +6,18 @@ from Funcs import *
 
 class NeuralNetwork:
     def __init__(self):
-        self.layers = []
-        self.weights = []
+        self.layers:list[np.ndarray] = []
+        self.weights:list[np.ndarray] = []
         self.biases = []
         self.act_funcs = []
         self.der_act_funcs = []
         self.print_train = False
 
-    def sigmoid(self, x: float):
-        return 1 / (1 + math.exp(-x))
-
-    def sigmoid_der(self, x: float):
-        return self.sigmoid(x) * (1 - self.sigmoid(x))
-
-    def softmax(self, layer: np.ndarray):
-        exps = np.exp(layer)
-        return exps / np.sum(exps)
-
     def size_of_layers(self):
         return len(self.layers)
 
     def set_input(self, inp: np.ndarray):
+        inp = np.array(inp)
         self.layers[0] = inp
 
     def add_layer(self, layer: np.ndarray):
@@ -67,7 +58,7 @@ class NeuralNetwork:
             raise ValueError('No previous layer')
         layer = np.dot(self.weights[lay_num], self.layers[lay_num - 1]) + self.biases[lay_num]
         for i in range(len(layer)):
-            layer[i] = self.sigmoid(layer[i])
+            layer[i] = self.act_funcs[lay_num](layer[i])
         self.layers[lay_num] = layer
 
     def calculate_all_layers(self):
@@ -167,28 +158,39 @@ class NeuralNetwork:
         lay = self.layers[lay_num]
         prev_lay = self.layers[lay_num-1]
         back_errors = []
-        for i in range(len(self.weights[lay_num])):
-            for j in range(len(self.weights[lay_num][i])):
-                delta = err_lst[i] * prev_lay[j]
-                scaled_delta = delta * self.der_act_funcs[lay_num](self.weights[lay_num][i][j])
-                back_errors.append(scaled_delta)
+        for j in range(len(prev_lay)):
+            deltas = 0
+            for i in range(len(lay)):
+                delta = err_lst[i]
+                scaled_delta = delta * prev_lay[j] * self.der_act_funcs[lay_num](lay[i])
+                deltas += scaled_delta
                 self.weights[lay_num][i][j] -= scaled_delta * alpha
+            back_errors.append(deltas)
+        back_errors = np.array(back_errors)
         return back_errors
 
     def run_training(self, iterations: int, alpha=1):
         images, labels = load_mnist_train()
-
         for it in range(iterations):
-            shift = 100
+            shift = 0
             it += shift
             inp = shrink_img_array(images[it])
             right_ans = labels[it]
             res = self.get_result(inp)
-            errors = self.get_errors(right_ans)
+            errors = np.array(self.get_errors(right_ans))
             right_res = [i == right_ans for i in range(len(self.layers[-1]))]
             if self.print_train: print(it, end='. ')
+            errors *= self.der_act_funcs[-1](self.layers[-1])
+            for lay_num in reversed(range(1, len(self.layers))):
+                # errors = self.back_prop(lay_num, errors, 1)
+                delta = errors
+                self.weights[lay_num] -= (alpha * self.layers[lay_num-1][:, np.newaxis].dot(delta[:, np.newaxis].T)).T
+                delta = errors.dot(self.weights[lay_num]) * self.der_act_funcs[lay_num-1](self.layers[lay_num-1])
+                errors = delta
 
-            self.back_prop(1, errors, 1)
+            if it> 100:
+                lyy = self.layers[-1]
+                aaaa = 10
 
             if self.print_train:
                 error = self.get_sqr_error(right_ans)

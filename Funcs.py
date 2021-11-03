@@ -3,6 +3,26 @@ import pygame
 from mnist import MNIST
 
 
+def relu(x: float):
+    return (x > 0) * x
+
+
+def relu_der(x: float):
+    return x > 0
+
+
+def sigmoid(x: float):
+    return 1 / (1 + np.exp(-x))
+
+
+def sigmoid_der(x: float):
+    return sigmoid(x) * (1 - sigmoid(x))
+
+
+def softmax(layer: np.ndarray):
+    exps = np.exp(layer)
+    return exps / np.sum(exps)
+
 def load_mnist_train():
     mndata = MNIST('MNIST')
     mndata.gz = True

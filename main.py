@@ -9,13 +9,10 @@ from Funcs import *
 if __name__ == '__main__':
     drawer = PixelDrawer()
 
-    # NN = SimpleNN()
-    # NN.print_train = True
-    # NN.run_training(400, 1)
-
-    NN = FullNN([784, 10])
+    NN = FullNN([784, 16, 10])
     NN.print_train = True
-    NN._test_train(200)
+    NN.run_training(2000, 0.05)
+    NN.save_settings()
 
 
     while True:

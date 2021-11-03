@@ -14,21 +14,24 @@ class FullNN(NeuralNetwork):
         self.rand_all_weights()
         self.set_all_biases(0)
         self.print_train = False
-        self.act_funcs = [self.sigmoid for _ in range(len(self.layers))]
-        self.der_act_funcs = [self.sigmoid_der for _ in range(len(self.layers))]
-
-    def get_result(self, inp: np.ndarray):
-        self.set_input(inp)
-        self.calculate_all_layers()
-        res_layer = self.get_result_layer()
-        maxi = 0
-        for ind in range(len(res_layer)):
-            if res_layer[ind] > res_layer[maxi]:
-                maxi = ind
-        return maxi
+        self.act_funcs = [sigmoid for _ in range(len(self.layers))]
+        self.der_act_funcs = [sigmoid_der for _ in range(len(self.layers))]
+        # self.act_funcs = [lambda x: x, lambda x: x, sigmoid]
+        # self.der_act_funcs = [lambda x: 1, lambda x: 1, sigmoid_der]
 
 
-    def train(self, inp: np.ndarray, right_ans: int, alpha=1):
+    # def get_result(self, inp: np.ndarray):
+    #     self.set_input(inp)
+    #     self.calculate_all_layers()
+    #     res_layer = self.get_result_layer()
+    #     maxi = 0
+    #     for ind in range(len(res_layer)):
+    #         if res_layer[ind] > res_layer[maxi]:
+    #             maxi = ind
+    #     return maxi
+
+
+    def __train(self, inp: np.ndarray, right_ans: int, alpha=1):
         res = self.get_result(inp)
         errors = self.get_errors(right_ans)
         right_res = [i == right_ans for i in range(len(self.layers[-1]))]
@@ -41,7 +44,7 @@ class FullNN(NeuralNetwork):
             print(f'Prediction: {res}, right ans: {right_ans}, error: {error}')
 
 
-    def run_training(self, iterations: int, alpha=1):
+    def __run_training(self, iterations: int, alpha=1):
         mndata = MNIST('MNIST')
         mndata.gz = True
         images, labels = mndata.load_training()
@@ -50,7 +53,7 @@ class FullNN(NeuralNetwork):
             self.train(shrink_img_array(images[i]), labels[i], alpha)
 
 
-    def _test_train(self, iterations: int):
+    def __test_train(self, iterations: int):
         images, labels = load_mnist_train()
 
         for it in range(iterations):
