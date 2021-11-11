@@ -3,6 +3,8 @@ import random
 import math
 from Funcs import *
 
+np.random.seed(random.randint(1, 300))
+
 
 class NeuralNetwork:
     def __init__(self):
@@ -28,7 +30,7 @@ class NeuralNetwork:
     def rand_weights(self, lay_num):
         if lay_num == 0:
             raise ValueError('No previous layer')
-        weights = np.random.rand(len(self.layers[lay_num]), len(self.layers[lay_num - 1]))
+        weights = np.random.rand(len(self.layers[lay_num]), len(self.layers[lay_num - 1])) - 0.5
         self.weights[lay_num] = weights
 
     def rand_biases(self, lay_num):
@@ -134,14 +136,14 @@ class NeuralNetwork:
 
     def get_errors(self, ans: int):
         right_res = [int(i == ans) for i in range(len(self.layers[-1]))]
-        return [res - right_res[ind] for ind, res in enumerate(self.get_result_layer())]
+        return [(res - right_res[ind]) for ind, res in enumerate(self.get_result_layer())]
 
     def get_sqr_error(self, ans: int):
         errors = self.get_errors(ans)
-        sum = 0
+        summ = 0
         for err in errors:
-            sum += err**2
-        return sum
+            summ += err**2
+        return summ
 
     def get_result(self, inp: np.ndarray):
         self.set_input(inp)
@@ -169,7 +171,7 @@ class NeuralNetwork:
         back_errors = np.array(back_errors)
         return back_errors
 
-    def run_training(self, iterations: int, alpha=1):
+    def run_training_mnist(self, iterations: int, alpha=1):
         images, labels = load_mnist_train()
         for it in range(iterations):
             shift = 0
@@ -177,18 +179,19 @@ class NeuralNetwork:
             inp = shrink_img_array(images[it])
             right_ans = labels[it]
             res = self.get_result(inp)
+            AAAAA__res_lay = self.get_result_layer()
             errors = np.array(self.get_errors(right_ans))
             right_res = [i == right_ans for i in range(len(self.layers[-1]))]
             if self.print_train: print(it, end='. ')
             errors *= self.der_act_funcs[-1](self.layers[-1])
+            delta = errors
             for lay_num in reversed(range(1, len(self.layers))):
                 # errors = self.back_prop(lay_num, errors, 1)
-                delta = errors
                 self.weights[lay_num] -= (alpha * self.layers[lay_num-1][:, np.newaxis].dot(delta[:, np.newaxis].T)).T
-                delta = errors.dot(self.weights[lay_num]) * self.der_act_funcs[lay_num-1](self.layers[lay_num-1])
-                errors = delta
+                delta = delta.dot(self.weights[lay_num]) * self.der_act_funcs[lay_num-1](self.layers[lay_num-1])
 
-            if it> 100:
+            if it> 1000:
+                errors = np.array(self.get_errors(right_ans))
                 lyy = self.layers[-1]
                 aaaa = 10
 
@@ -199,7 +202,26 @@ class NeuralNetwork:
 
 
 
+    def run_training(self, inputs: list[np.ndarray], answers: np.ndarray, iterations: int, alpha=1):
+        for it in range(iterations):
+            shift = 0
+            it += shift
+            inp = inputs[it%len(inputs)]
+            right_ans = answers[it%len(answers)]
+            res = self.get_result(inp)
+            res_layer = self.layers[-1]
+            errors = res_layer - right_ans
+            if self.print_train: print(it, end='. ')
+            errors *= self.der_act_funcs[-1](self.layers[-1])
+            delta = errors
+            for lay_num in reversed(range(1, len(self.layers))):
+                # errors = self.back_prop(lay_num, errors, 1)
+                self.weights[lay_num] -= (alpha * self.layers[lay_num-1][:, np.newaxis].dot(delta[:, np.newaxis].T)).T
+                delta = delta.dot(self.weights[lay_num]) * self.der_act_funcs[lay_num-1](self.layers[lay_num-1])
 
+            if self.print_train:
+                error = errors**2
+                print(f'Prediction: {res}, right ans: {right_ans}, error: {error}')
 
 
 
